@@ -10,8 +10,8 @@ tail -n +2 ../'Hospital_Revised_Flatfiles'/'hvbp_hcahps_05_28_2015.csv' > survey
 
 #Moving files into HDFS
 
-scp -i ucb1.pem hospitals.csv root@ec2-54-172-224-79.compute-1.amazonaws.com:~/../home/w205/hospital_compare
-scp -i ucb1.pem effective_care.csv root@ec2-54-172-224-79.compute-1.amazonaws.com:~/../home/w205/hospital_compare
-scp -i ucb1.pem readmissions.csv root@ec2-54-172-224-79.compute-1.amazonaws.com:~/../home/w205/hospital_compare
-scp -i ucb1.pem Measures.csv root@ec2-54-172-224-79.compute-1.amazonaws.com:~/../home/w205/hospital_compare
-scp -i ucb1.pem surveys_responses.csv root@ec2-54-172-224-79.compute-1.amazonaws.com:~/../home/w205/hospital_compare
+scp -i ucb1.pem hospitals.csv root@ec2-54-165-90-175.compute-1.amazonaws.com:~/../home/w205/hospital_compare
+scp -i ucb1.pem effective_care.csv root@ec2-54-165-90-175.compute-1.amazonaws.com:~/../home/w205/hospital_compare
+scp -i ucb1.pem readmissions.csv root@ec2-54-165-90-175.compute-1.amazonaws.com:~/../home/w205/hospital_compare
+scp -i ucb1.pem Measures.csv root@ec2-54-165-90-175.compute-1.amazonaws.com:~/../home/w205/hospital_compare
+scp -i ucb1.pem surveys_responses.csv root@ec2-54-165-90-175.compute-1.amazonaws.com:~/../home/w205/hospital_compare
