@@ -1,0 +1,56 @@
+Explanation (initial filtering before all queries):
+In order to get to top hospitals, a series of transformations needed to be done on the data.
+ -> First, I filtered out any score data reading "Not Available"
+ -> Next, I filtered out score data where sample size was not large enough (deemed any sample < 30 as potentially unreliable and filtered out)
+ -> Subsequently, I noticed that many of the scores were not actually denominated out of 100; many of these instead were wait times or other factors not set on a consistent scale
+   -> As such, I filtered these non-100 based scores out of tables
+ -> Then, I created temporary consolidated joined table (called "effective_care_filtered_joined2") through a series of steps to create a consistent baseline to analyze off of
+   -> This table included joined state and survey data
+All of the above were done in the "transforming" steps and are saved within that folder.
+__________________________________________________
+
+TOP HOSPITALS SPECIFIC EXPLANATION AND OUTPUT:
+
+TOP-10 HOSPITALS CHOSEN: GHS PATEWOOD MEMORIAL HOSPITAL, KANSAS SURGERY & RECOVERY CENTER, BAYLOR HEART AND VASCULAR HOSPITAL, FLORIDA HOSPITAL NORTH PINELLAS, ROXBOROUGH MEMORIAL HOSPITAL, RIVERSIDE TAPPAHANNOCK HOSPITAL, NOVANT HEALTH PARK HOSPITAL, QUAIL CREEK SURGICAL HOSPITAL, RAULERSON HOSPITAL
+
+Approach: Get to top-10 hospitals based on score on relevant categories, provided that there were enough scores to base a quality average on. Query on top-20 hospitals so that can filter out high stddev of measurement hospitals as necessary.
+This approach is appropriate because it filters out noisy data (in filtering before queries) to ensure using scores with large enough sample size and also to ensure using scores with same denominators out of 100.
+This approach is also appropriate because we are filtering on hospitals with enough valid scores for a proper average (10+). Less score instances than this increases the chance that these good scores are partly due to small sample size.
+Thoughts on alternate measurement: Could have filtered out standard deviation over a certain amount and limited table to 10, but this could hypothetically knock the top hospital out if it had a STDDEV just above the threshold. As such, LIMIT on 20 gives ability to remove single high-variability hospitals manually as appropriate based on combo of score and stddev.
+-> However, stddevs on each measurement were very low for the top-10 scoring hospitals, so did not manually filter any out here.
+
+Explanation of Query: Query hospitals with top average scores as long as there are 10+ instances of scores, group by provider_id and hospital_name. Querying 20 so that can omit those with higher standard deviations. Side note: crucial to group by provider_id and not only on hospital_name as there are multiple similarly-named hospitals.
+
+
+SQL Query:
+SELECT provider_id, hospital_name, AVG(score) as score_avg, STDDEV(score) as score_stddev, COUNT(score) as score_count 
+FROM effective_care_filtered_joined2
+GROUP BY provider_id, hospital_name
+HAVING COUNT(score) >= 10
+ORDER BY score_avg DESC
+LIMIT 20
+;
+
+SQL Output: (provider_id, hospital_name, score_avg, score_stddev, score_count) 
+420102	GHS PATEWOOD MEMORIAL HOSPITAL	99.83333333333333	0.3726779962499649	12
+170183	KANSAS SURGERY & RECOVERY CENTER	99.81818181818181	0.5749595745760689	11
+450851	BAYLOR HEART AND VASCULAR HOSPITAL	99.8125	0.5266343608235223	16
+100055	FLORIDA HOSPITAL NORTH PINELLAS	99.8	0.9797958971132713	25
+390304	ROXBOROUGH MEMORIAL HOSPITAL	99.70588235294117	0.5703152773430975	17
+490084	RIVERSIDE TAPPAHANNOCK HOSPITAL	99.6875	0.9822646028438569	16
+340148	NOVANT HEALTH PARK HOSPITAL	99.66666666666667	0.8498365855987974	12
+450875	QUAIL CREEK SURGICAL HOSPITAL	99.66666666666667	0.4714045207910317	12
+340049	NORTH CAROLINA SPECIALTY HOSPITAL	99.66666666666667	0.6236095644623235	12
+100252	RAULERSON HOSPITAL	99.5925925925926	2.077378320352616	27
+670059	ST LUKES LAKESIDE HOSPITAL	99.58333333333333	0.9537935951882998	12
+520059	AURORA MEMORIAL HOSPITAL BURLINGTON	99.57142857142857	0.7911070345636262	21
+490116	LEWISGALE HOSPITAL PULASKI	99.5625	0.998044963916957	16
+170197	KANSAS MEDICAL CENTER LLC	99.55555555555556	0.9558139185602919	18
+520038	AURORA MEDICAL CTR WASHINGTON COUNTY	99.53333333333333	0.7180219742846006	15
+420087	ROPER HOSPITAL	99.48275862068965	0.8558395617924729	29
+450845	EL PASO SPECIALTY HOSPITAL	99.45454545454545	1.1570838237598051	11
+110016	WEST GEORGIA MEDICAL CENTER	99.44827586206897	1.248066280748542	29
+670025	THE HEART HOSPITAL BAYLOR PLANO	99.38888888888889	1.1124991330278213	18
+450766	UT SOUTHWESTERN UNIVERSITY HOSPITAL-ZALE LIPSHY	99.375	1.4947825928876746	16
+Time taken: 47.573 seconds, Fetched: 20 row(s)
+

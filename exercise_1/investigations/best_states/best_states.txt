@@ -1,0 +1,58 @@
+Explanation (initial filtering before all queries):
+In order to get to top hospitals, a series of transformations needed to be done on the data.
+ -> First, I filtered out any score data reading "Not Available"
+ -> Next, I filtered out score data where sample size was not large enough (deemed any sample < 30 as potentially unreliable and filtered out)
+ -> Subsequently, I noticed that many of the scores were not actually denominated out of 100; many of these instead were wait times or other factors not set on a consistent scale
+   -> As such, I filtered these non-100 based scores out of tables
+ -> Then, I created temporary consolidated joined table (called "effective_care_filtered_joined2") through a series of steps to create a consistent baseline to analyze off of
+   -> This table included joined state and survey data
+All of the above were done in the "transforming" steps and are saved within that folder.
+__________________________________________________
+
+TOP STATES SPECIFIC EXPLANATION AND OUTPUT:
+
+TOP-10 STATES CHOSEN: (Maine, New Hampshire, Virginia, Rhode Island, Florida, Pennsylvania, Nevada, South Dakota, Vermont, Massachusetts)
+
+Approach: Get to top-10 states based on score across all measurable areas. Query on top-20 states so that can filter out high stddev of measure states as appropriate.
+This approach is appropriate because it filters out noisy data (in filtering before queries) to ensure using scores with large enough sample size and also to ensure using scores with same denominators out of 100.
+There are large sample sizes per state, increasing our confidence in the output.
+Thoughts on alternate measurement: Could have filtered out standard deviation over a certain amount and limited table to 10, but this could hypothetically knock the top hospital out if it had a STDDEV just above the threshold. As such, LIMIT on 20 gives ability to remove single high-variability states manually as appropriate based on combo of score and stddev.
+-> Note: Manually removed Wisconsin and North Carolina from top-10 due to high standard deviations (less consistency)
+
+Explanation of Query: Query states with top average scores across all procedure as long as there are 10+ instances of scores, group by provider_id and hospital_name. Side note: Not truly necessary to have count >10 filter as each state has significantly more instances
+
+
+SQL Query:
+SELECT state, AVG(score) as score_avg, STDDEV(score) as score_stddev, COUNT(score) as score_count 
+FROM effective_care_filtered_joined2
+GROUP BY state
+HAVING COUNT(score) >= 10
+ORDER BY score_avg DESC
+LIMIT 20
+;
+
+SQL Output: (state, score_avg, score_stddev, score_count) 
+Total MapReduce CPU Time Spent: 8 seconds 710 msec
+OK
+ME	95.63376623376624	15.173743645030166	385
+NH	95.61931818181819	13.754233711467512	352
+VA	94.60854503464203	16.90188015720244	1732
+WI	94.46944083224967	17.28298590805405	1538
+RI	94.380073800738	13.081895379126854	271
+FL	94.3695652173913	16.561531575252534	4324
+PA	94.35641842944074	15.502924125068816	3451
+NE	94.29593810444874	16.89114777774304	517
+SD	94.27272727272727	16.355778135587713	297
+NC	94.22472966619652	17.274500248181642	2127
+VT	94.203007518797	15.557199526914998	133
+MA	94.19899785254115	15.484230752676828	1397
+MT	94.19343065693431	16.34825691898029	274
+SC	94.16666666666667	17.0500407298308	1200
+NV	94.12792792792793	16.491106919131564	555
+CO	94.04646660212973	18.02885096687974	1033
+CT	93.73146853146854	17.225466671159293	715
+ID	93.7128712871287	18.01686227063809	303
+OH	93.65694849368319	17.183848463761816	3087
+HI	93.62815884476534	17.53703665768226	277
+Time taken: 47.15 seconds, Fetched: 20 row(s)
+

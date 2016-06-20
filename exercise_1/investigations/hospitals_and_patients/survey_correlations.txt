@@ -1,0 +1,44 @@
+Explanation (initial filtering before all queries):
+In order to get to top hospitals, a series of transformations needed to be done on the data.
+ -> First, I filtered out any score data reading "Not Available"
+ -> Next, I filtered out score data where sample size was not large enough (deemed any sample < 30 as potentially unreliable and filtered out)
+ -> Subsequently, I noticed that many of the scores were not actually denominated out of 100; many of these instead were wait times or other factors not set on a consistent scale
+   -> As such, I filtered these non-100 based scores out of tables
+ -> Then, I created temporary consolidated joined table (called "effective_care_filtered_joined2") through a series of steps to create a consistent baseline to analyze off of
+   -> This table included joined state and survey data
+All of the above were done in the "transforming" steps and are saved within that folder.
+__________________________________________________
+
+CORRELATION OF SURVEY RESPONSES with 1) AVERAGE PROCEDURE SCORE and 2) VARIABILITY OF PROCEDURE SCORE within hospitals EXPLANATION AND OUTPUT:
+
+Conclusions:
+A higher HCAHPS survey score has a material positive correlation (corr value=0.165) with higher average process/procedure score for that hospital.
+A higher HCAHPS survey score also has a material negative correlation (corr value=-0.184) with variability of process/procedure scores within a hospital.
+As such, a higher HCAHPS score is indicative
+
+
+Approach: Create new temporary table based on correlation queries grouping by provider_id and hospital_name. This table groups average score, stddev of scores, and hcahps average score
+From here, use a SQL correlation query to see if there are material positive or negative correlations.
+Expectation would be that there is a positive correlation with avg score and hcahps_base_score as well as zero or negative correlation with variability of scores and hcahps_base_score.
+ -> This turned out to be the case with a positive correlation to avg score and a negative correlation to variability of procedural scores
+
+Explanation of Table Creation/Queres: 
+--Create table allowing for easy correlation queries grouping by provider_id and hospital_name, and bringing in average score by hospital, variability of procedure score by hospital, and hcahps_survey_score by hospital
+CREATE TABLE for_correlations as SELECT 
+provider_id, hospital_name, AVG(score) as score_avg, STDDEV(score) as score_stddev, COUNT(score) as score_count, AVG(hcahps_base_score) as hcahps_base_score
+FROM effective_care_filtered_joined2
+GROUP BY provider_id, hospital_name
+HAVING COUNT(score) >= 10
+ORDER BY score_avg DESC
+;
+
+--Query correlations off of this created table
+SELECT corr(score_avg, hcahps_base_score) FROM for_correlations;
+SELECT corr(score_stddev, hcahps_base_score) FROM for_correlations;
+
+SQL Output 1: (correlation)
+0.16535376006604433
+Time taken: 22.866 seconds, Fetched: 1 row(s)
+SQL Output 2: (correlation)
+-0.18488594030684752
+Time taken: 22.804 seconds, Fetched: 1 row(s)

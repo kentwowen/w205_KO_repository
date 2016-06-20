@@ -1,0 +1,53 @@
+Explanation (initial filtering before all queries):
+In order to get to top hospitals, a series of transformations needed to be done on the data.
+ -> First, I filtered out any score data reading "Not Available"
+ -> Next, I filtered out score data where sample size was not large enough (deemed any sample < 30 as potentially unreliable and filtered out)
+ -> Subsequently, I noticed that many of the scores were not actually denominated out of 100; many of these instead were wait times or other factors not set on a consistent scale
+   -> As such, I filtered these non-100 based scores out of tables
+ -> Then, I created temporary consolidated joined table (called "effective_care_filtered_joined2") through a series of steps to create a consistent baseline to analyze off of
+   -> This table included joined state and survey data
+All of the above were done in the "transforming" steps and are saved within that folder.
+__________________________________________________
+
+HIGHEST VARIABILITY PROCEDURES AND PROCESSES SPECIFIC EXPLANATION AND OUTPUT:
+
+TOP-10 HIGHEST VARIABILITY CHOSEN: (Head CT results,
+Thrombolytic Therapy, 
+Warfarin therapy discharge instructions, 
+Healthcare workers given influenza vaccination, 
+Stroke Education, 
+Venous thromboembolism prophylaxis, 
+Home Management Plan of Care Document, 
+Immunization for influenza, 
+Discharge instructions, 
+ICU venous thromboembolism prophylaxis)
+
+
+Approach: Get to top-10 most variable processes/procedures based on standard deviation of score across hospitals. Query just on top-10 (no buffer) as this is a measure of variability, so can just get highest stddevs as the best representation here (no need to filter out values).
+This approach is appropriate because it filters out noisy data (in filtering before queries) to ensure using scores with large enough sample size and also to ensure using scores with same denominators out of 100.
+Sample sizes per process/procedure are relatively, increasing our confidence in the output.
+Standard deviation here is a great measurement for variability; no need to get any fancier with unit of variability measurement.
+
+Explanation of Query: Query standard deviations by process/procedure as long as there are 10+ instances of scores, group by measure_id and measure_name.
+
+SQL Query:
+SELECT measure_id, measure_name, AVG(score) as score_avg, STDDEV(score) as score_stddev, COUNT(score) as score_count 
+FROM effective_care_filtered_joined2
+GROUP BY measure_id, measure_name
+HAVING COUNT(score) >= 5
+ORDER BY score_stddev DESC
+LIMIT 10
+;
+
+SQL Output: (measure_id, measure_name, score, score_stddev, score_count) 
+OP_23	Head CT results	66.7605633802817	22.038036765359458	71
+STK_4	Thrombolytic Therapy	86.73529411764706	19.616782766039016	170
+VTE_5	Warfarin therapy discharge instructions	87.84810911345319	16.826303227551662	1613
+IMM_3_FAC_ADHPCT	Healthcare workers given influenza vaccination	80.33550276602668	16.121196293927966	3073
+STK_8	Stroke Education	92.1644370122631	11.51482228053855	1794
+VTE_1	Venous thromboembolism prophylaxis	90.88368283093054	11.30220097397642	3052
+CAC_3	Home Management Plan of Care Document	90.88135593220339	10.223079150333827	59
+IMM_2	Immunization for influenza	93.31998697916667	9.18552368198626	3072
+HF_1	Discharge instructions	95.2388306674021	8.121308150036644	1813
+VTE_2	ICU venous thromboembolism prophylaxis	94.97368421052632	6.895191685622671	2660
+Time taken: 45.972 seconds, Fetched: 10 row(s)
