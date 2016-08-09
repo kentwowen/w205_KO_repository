@@ -1,9 +1,0 @@
-2016-08-08 21:53:26,462 - streamparse.storm.component - ERROR - Exception in ParseTweet.run()
-Traceback (most recent call last):
-  File "/usr/lib/python2.7/site-packages/streamparse-2.1.4-py2.7.egg/streamparse/storm/component.py", line 489, in run
-    self._run()
-  File "/usr/lib/python2.7/site-packages/streamparse-2.1.4-py2.7.egg/streamparse/storm/bolt.py", line 219, in _run
-    self.process(tup)
-  File "bolts/parse.py", line 41, in process
-    aword = aword.lowercase() #ADDED TO MAKE LOWERCASE
-AttributeError: 'unicode' object has no attribute 'lowercase'
