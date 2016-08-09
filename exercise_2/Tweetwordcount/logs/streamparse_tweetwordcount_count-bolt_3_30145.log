@@ -1,0 +1,7 @@
+2016-08-06 20:21:40,775 - streamparse.storm.component - ERROR - Exception in WordCounter.run()
+Traceback (most recent call last):
+  File "/usr/lib/python2.7/site-packages/streamparse-2.1.4-py2.7.egg/streamparse/storm/component.py", line 487, in run
+    self.initialize(storm_conf, context)
+  File "bolts/wordcount.py", line 12, in initialize
+    self.redis = StrictRedis()
+NameError: global name 'StrictRedis' is not defined

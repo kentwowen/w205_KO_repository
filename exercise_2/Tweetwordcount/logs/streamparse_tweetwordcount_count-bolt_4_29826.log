@@ -1,0 +1,8 @@
+2016-08-08 20:49:39,545 - streamparse.storm.component - ERROR - Exception in WordCounter.run()
+Traceback (most recent call last):
+  File "/usr/lib/python2.7/site-packages/streamparse-2.1.4-py2.7.egg/streamparse/storm/component.py", line 487, in run
+    self.initialize(storm_conf, context)
+  File "bolts/wordcount.py", line 16, in initialize
+    cur.execute("""CREATE TABLE tweetwordcount (word TEXT PRIMARY KEY   NOT NULL, count INT NOT NULL);""")
+ProgrammingError: relation "tweetwordcount" already exists
+
